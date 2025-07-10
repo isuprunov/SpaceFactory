@@ -17,6 +17,7 @@
     <PackageVersion Include="Avalonia.ReactiveUI" Version="11.3.2" />
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.3.2" />
     <PackageVersion Include="ReactiveUI.Fody" Version="19.5.41" />
+    <PackageVersion Include="Refit" Version="8.0.0" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.10" />
     <PackageVersion Include="SkiaSharp" Version="3.119.0" />
     <PackageVersion Include="System.Drawing.Common" Version="9.0.6" />

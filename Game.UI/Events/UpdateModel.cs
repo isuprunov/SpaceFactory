@@ -11,10 +11,15 @@ public record ResourceChange(string ResourceTypeId, double Count);
 
 public record ChangeRecept(string MachineId, string? ReceptId);
 
+public class UpdateModelV2()
+{
+    
+}
+
 public class UpdateModel()
 {
     public InitVm? InitVm { get; set; }
-    public ResourceChange[]? Resources { get; set; }
+    public ResourceChange[]? SetResources { get; set; }
     public MachineItem? CreateMachine { get; set; }
     public ChangeRecept? ChangeRecept {get; set;}
 }
@@ -136,7 +141,7 @@ public class MachineItem : ReactiveObject
 public class MachineTypeItem
 {
     public required string Id { get; set; }
-    public required Bitmap? Image { get; set; }
+    public Bitmap? Image { get; set; }
     public ReactiveCommand<Unit, Unit> CreateMachine { get; set; } = null!;
 
     public static MachineTypeItem CreateViewModel(MachineType machineType)
@@ -144,7 +149,7 @@ public class MachineTypeItem
         return new MachineTypeItem()
         {
             Id = machineType.Id,
-            Image = MainViewModel.LoadResources(machineType),
+            //Image = MainViewModel.LoadResources(machineType),
             // CreateMachine = ReactiveCommand.Create(() =>
             // {
             //     var machine = player.CreateMachine(machineType, null);

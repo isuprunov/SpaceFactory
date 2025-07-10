@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution-files", "solution-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Server", "Game.Server\Game.Server.csproj", "{3C4E2932-EEAE-40CE-8E75-344E092B6091}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Client", "Game.Client\Game.Client.csproj", "{F6B30788-3978-4AA8-B850-D7FA590DEEA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Solo", "Game.Solo\Game.Solo.csproj", "{5F765348-26C0-4FE2-8D6D-3D529E7F8181}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +34,13 @@ Global
 		{3C4E2932-EEAE-40CE-8E75-344E092B6091}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C4E2932-EEAE-40CE-8E75-344E092B6091}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C4E2932-EEAE-40CE-8E75-344E092B6091}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6B30788-3978-4AA8-B850-D7FA590DEEA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6B30788-3978-4AA8-B850-D7FA590DEEA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6B30788-3978-4AA8-B850-D7FA590DEEA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6B30788-3978-4AA8-B850-D7FA590DEEA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F765348-26C0-4FE2-8D6D-3D529E7F8181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F765348-26C0-4FE2-8D6D-3D529E7F8181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F765348-26C0-4FE2-8D6D-3D529E7F8181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F765348-26C0-4FE2-8D6D-3D529E7F8181}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

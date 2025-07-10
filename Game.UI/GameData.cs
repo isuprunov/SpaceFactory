@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Threading.Channels;
 using Avalonia.Media.Imaging;
 using Game.UI.Events;
 
@@ -75,11 +76,17 @@ public record Machine(MachineType MachineType, Recept? CurrentResourceProcess = 
 public class Player
 {
     public string Id { get; init; }
+    public Channel<UpdateModel> Channel { get; set; }
     private readonly Action<UpdateModel> _update;
 
     public Player(Action<UpdateModel> update, GameData gameData)
     {
-        _update = update;
+        Channel = System.Threading.Channels.Channel.CreateUnbounded<UpdateModel>(new UnboundedChannelOptions()
+        {
+            SingleReader = true,
+            SingleWriter = true
+        });
+            _update = update;
         Resources = gameData.AllResources.ToDictionary(m => m.Id, m => new Resource(m, 0));
         MachineTypes = gameData.AllMachinesTypes.ToDictionary(m => m.Id, m=> m);
         Recepts = gameData.AllRecepts.ToDictionary(m=> m.Id, m=> m);
@@ -122,10 +129,11 @@ public class Player
         Recept? recept = null;
         if(receptId != null)
             recept = Recepts[receptId];
-        _update(new UpdateModel()
+        Channel.Writer.WriteAsync(new UpdateModel()
         {
             CreateMachine = MachineItem.CreateViewModel(CreateMachine(MachineTypes[machineTypeId], recept))
         });
+        //_update();
     }
     
     public void ChangeRecept(string machineId, string? receptId)
@@ -135,7 +143,7 @@ public class Player
             recept = Recepts[receptId];
         var machine = Machines[machineId];
         machine.CurrentResourceProcess = recept;
-        _update(new UpdateModel()
+        Channel.Writer.WriteAsync(new UpdateModel()
         {
             ChangeRecept = new ChangeRecept(machine.Id, recept?.Id) 
         });
@@ -150,6 +158,10 @@ public class Player
     {
         foreach (var (_, machine) in Machines)
             machine.Work(Resources);
+        Channel.Writer.WriteAsync(new UpdateModel()
+        {
+            SetResources = Resources.Select(m=> new ResourceChange(m.Key, m.Value.Count)).ToArray() 
+        });
     }
 
     // public bool RemoveMachine(Machine machine)

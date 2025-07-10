@@ -8,15 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Refit" />
-      <PackageReference Include="SixLabors.ImageSharp" />
-      <PackageReference Include="SkiaSharp" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Update="image.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+      <ProjectReference Include="..\Game.Client\Game.Client.csproj" />
+      <ProjectReference Include="..\Game.Server\Game.Server.csproj" />
     </ItemGroup>
 
 </Project>
