@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:Game.UI.ViewModel"
+             xmlns:ui="clr-namespace:Game.UI"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="viewModels:MainViewModel"
+             x:Class="Game.UI.View.MainView">
+    <Design.DataContext>
+        <viewModels:MainViewModel />
+    </Design.DataContext>
+    <StackPanel>
+        <HeaderedContentControl Header="Ресурсы">
+            <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Resources}"
+                          ItemTemplate="{StaticResource ResourceDataTemplate}" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Машины">
+            <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Machines}"
+                          ItemTemplate="{StaticResource MachineDataTemplate}" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Постройка">
+            <ItemsControl ItemsSource="{Binding AvailableMachineForBuilds}"
+                          ItemsPanel="{StaticResource HorizontalItemsPanel}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Command="{Binding CreateMachine}">
+                            <Image Width="32" Height="32" Stretch="Uniform" Source="{Binding Image}" />
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </HeaderedContentControl>
+
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,77 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:viewModel="clr-namespace:Game.UI.ViewModel"
+                    xmlns:ui="clr-namespace:Game.UI"
+                    xmlns:events="clr-namespace:Game.UI.Events">
+
+    <DataTemplate x:Key="ResourceDataTemplate" x:DataType="events:ResourceItem">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition SharedSizeGroup="Col1" Width="Auto" />
+                <ColumnDefinition SharedSizeGroup="Col2" Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+            <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat={}{0:F2}}" HorizontalAlignment="Right" />
+        </Grid>
+    </DataTemplate>
+
+    <ItemsPanelTemplate x:Key="HorizontalItemsPanel">
+        <StackPanel Orientation="Horizontal" />
+    </ItemsPanelTemplate>
+
+   
+    <DataTemplate x:Key="ReceptDataTemplate" x:DataType="events:ReceptItem">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition SharedSizeGroup="Col1" Width="Auto" />
+                <ColumnDefinition SharedSizeGroup="Col2" Width="Auto" />
+                <ColumnDefinition SharedSizeGroup="Col3" Width="Auto" />
+                <ColumnDefinition SharedSizeGroup="Col4" Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+            <ItemsControl Grid.Column="1"
+                          ItemsSource="{Binding SourceReceptItems}"
+                          ItemTemplate="{StaticResource ResourceDataTemplate}"
+                          ItemsPanel="{StaticResource HorizontalItemsPanel}">
+
+            </ItemsControl>
+            <TextBlock Text=" -> " Grid.Column="2" IsVisible="{Binding !DestinationReceptItemEmpty}" />
+            <ItemsControl Grid.Column="3"
+                          ItemsSource="{Binding DestinationReceptItems}"
+                          ItemTemplate="{StaticResource ResourceDataTemplate}"
+                          ItemsPanel="{StaticResource HorizontalItemsPanel}">
+
+            </ItemsControl>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PopupResourceProcessDataTemplate" x:DataType="events:MachineReceptItem">
+        <Button
+            Command="{Binding ChangeCurrentProcess}">
+            <ContentControl ContentTemplate="{StaticResource ReceptDataTemplate}" Content="{Binding ReceptItem}" />
+        </Button>
+    </DataTemplate>
+
+    <DataTemplate x:Key="MachineDataTemplate" x:DataType="events:MachineItem">
+        <Grid ColumnDefinitions="Auto Auto Auto Auto Auto">
+            <TextBlock Text="{Binding Count}"/>
+            <Button Grid.Column="1" Command="{Binding ChangeCurrentProcessOpenPopup}">
+                <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+            </Button>
+            <ContentControl Grid.Column="2" ContentTemplate="{StaticResource ReceptDataTemplate}" Content="{Binding CurrentRecept}" />
+            <Popup Grid.Column="2" IsOpen="{Binding IsPopupOpenSelectResourceProcess, Mode=TwoWay}" Placement="Pointer" ui:PopupBehaviors.CloseOnClickOutside="True"
+                   HorizontalOffset="-10" VerticalOffset="-10">
+                <Border x:Name="PopupWrapper" Background="Transparent">
+                <ItemsControl Grid.IsSharedSizeScope="True" ItemTemplate="{StaticResource PopupResourceProcessDataTemplate}"
+                              ItemsSource="{Binding AvailableRecepts}">
+                </ItemsControl></Border>
+            </Popup>
+            <Button Grid.Column="3" Content="Добавить" Command="{Binding AddMachine}"/>
+            <Button Grid.Column="4" Content="Удалить" Command="{Binding RemoveMachine}"/>
+        </Grid>
+    </DataTemplate>
+    
+    
+
+    
+</ResourceDictionary>

@@ -1,0 +1,20 @@
+{
+  "Resource": [
+    {
+      "Id": "IronOre",
+      "Format": "Particles"
+    },
+    {
+      "Id": "CopperOre",
+      "Format": "Particles"
+    },
+    {
+      "Id": "Coal",
+      "Format": "Particles"
+    },
+    {
+      "Id": "Stone" ,
+      "Format": "Particles"
+    }
+  ]
+}

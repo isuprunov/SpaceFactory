@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="Game.UI/App.axaml" value="Game.UI/Game.UI.csproj" />
+        <entry key="Game.UI/DataTemplate/Q.axaml" value="Game.UI/Game.UI.csproj" />
+        <entry key="Game.UI/MainView.axaml" value="Game.UI/Game.UI.csproj" />
+        <entry key="Game.UI/MainWindow.axaml" value="Game.UI/Game.UI.csproj" />
+        <entry key="Game.UI/View/MainView.axaml" value="Game.UI/Game.UI.csproj" />
+      </map>
+    </option>
+  </component>
+</project>
