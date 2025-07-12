@@ -1,27 +1,155 @@
-using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Reflection;
 using Avalonia.Media.Imaging;
-using DynamicData.Binding;
-using Game.UI.Events;
+using Game.Client;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-// ReSharper disable UnusedAutoPropertyAccessor.Local
+
 
 namespace Game.UI.ViewModel;
 
+
+
+public class ResourceContainerViewModel : ReactiveObject
+{
+    public ResourceContainerViewModel(ResourceContainerModel model, GameClient client)
+    {
+        ResourceTypeId = model.ResourceTypeId;
+        Count = model.Count;
+        MaxCount = model.MaxCount;
+        Image = MainViewModel.LoadResources(model.ResourceTypeId);
+        this.WhenAnyValue(x => x.MaxCount)
+            .Throttle(TimeSpan.FromMilliseconds(300))
+            .SelectMany(x => Observable.FromAsync(() => client.SetMaxCountResourceAsync(ResourceTypeId, x)))
+            .Subscribe();
+    }
+
+    public string ResourceTypeId { get; set; }
+    [Reactive] public double Count { get; set; }
+    [Reactive] public double MaxCount { get; set; }
+    public Bitmap? Image { get; set; }
+}
+
+public class ResourceCostViewModel(ResourceCostModel model) : ReactiveObject
+{
+    public string ResourceTypeId { get; set; } = model.ResourceTypeId;
+    [Reactive] public double Count { get; set; } = model.Count;
+    public Bitmap? Image { get; set; } = MainViewModel.LoadResources(model.ResourceTypeId);
+}
+
+
+public class ReceptViewModel(ReceptModel model) : ReactiveObject
+{
+    public string Id { get; set; } = model.Id;
+    [Reactive] public Bitmap? Image { get; set; } = MainViewModel.LoadResources(model.Id);
+    [Reactive] public ResourceCostViewModel[] InResources { get; set; } = model.InResources.Select(resourceModel => new ResourceCostViewModel(resourceModel)).ToArray();
+    [Reactive] public ResourceCostViewModel[] OutResources { get; set; } = model.OutResources.Select(resourceModel => new ResourceCostViewModel(resourceModel)).ToArray();
+    [Reactive] public bool DestinationReceptItemNotEmpty { get; set; } = model.OutResources.Any();
+}
+
+public class MachineReceptViewModel : ReactiveObject
+{
+    public ReceptViewModel ReceptItem { get; set; }
+    public ReactiveCommand<Unit, Unit> ChangeCurrentProcess { get; set; }
+}
+
+public class MachineTypeViewModel : ReactiveObject
+{
+    public MachineTypeViewModel(MachineTypeModel model)
+    {
+        Id = model.Id;
+        Image = MainViewModel.LoadResources(model.Id);
+        AvailableReceptIds = model.AvailableReceptIds.ToArray();
+        Cost = model.Cost.Select(m => new ResourceCostViewModel(new ResourceCostModel
+        {
+            ResourceTypeId = m.Key,
+            Count = m.Value,
+        })).ToArray();
+    }
+
+    public string Id { get; set; }
+    public Bitmap? Image { get; set; }
+    public string[] AvailableReceptIds { get; set; }
+    public ResourceCostViewModel[] Cost { get; set; }
+    public required ReactiveCommand<Unit, Unit> CreateMachine { get; set; } = null!;
+}
+
+
+
+public class DepositViewModel : ReactiveObject
+{
+    public DepositViewModel(DepositModel model)
+    {
+        ResourceTypeId = model.ResourceTypeId;
+        Image = MainViewModel.LoadResources(model.ResourceTypeId);
+        Count = model.Count;
+        BeginCount = model.BeginCount;
+        Performance = model.Performance;
+        BeginPerformance = model.BeginPerformance;
+        Slots = model.Slots;
+        UsedSlots = model.UsedSlots;
+        this.WhenAnyValue(x => x.BeginPerformance).Subscribe(m => BeginPerformanceInPercent = (int)Math.Round(m * 100));
+        this.WhenAnyValue(x => x.Performance).Subscribe(m => PerformanceInPercent = (int)Math.Round(m * 100));
+    }
+
+    public string ResourceTypeId { get; set; }
+    public Bitmap? Image { get; set; }
+    [Reactive] public double Count { get; set; }
+    [Reactive] public double BeginCount { get; set; }
+    [Reactive] public double Performance { get; set; }
+    [Reactive] public double BeginPerformance { get; set; }
+    [Reactive] public double Slots { get; set; }
+    [Reactive] public double UsedSlots { get; set; }
+    [Reactive] public int PerformanceInPercent { get; set; }
+    [Reactive] public int BeginPerformanceInPercent { get; set; }
+}
+
+public class MachineViewModel : ReactiveObject
+{
+    public MachineViewModel(MachineModel model, ObservableKeyedCollection<ReceptViewModel> allRecepts, ObservableKeyedCollection<MachineTypeViewModel> allMachineTypes, GameClient gameClient)
+    {
+        Id = model.Id;
+        MachineTypeId = model.MachineTypeId;
+        Image = MainViewModel.LoadResources(model.MachineTypeId);
+        Count = model.Count;
+        CurrentRecept = model.CurrentReceptId == null ? null : allRecepts[model.CurrentReceptId];
+        AvailableRecepts = allMachineTypes[model.MachineTypeId].AvailableReceptIds.Select(m => new MachineReceptViewModel()
+        {
+            ReceptItem = allRecepts[m],
+        }).ToArray();
+        ChangeCurrentProcessOpenPopup = ReactiveCommand.Create(() => { IsPopupOpenSelectResourceProcess = true; });
+        IncrementCountMachine = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (await gameClient.IncrementCountMachineAsync(model.Id))
+                Count++;
+        });
+        DecrementCountMachine = ReactiveCommand.CreateFromTask(async () => await gameClient.DecrementCountMachineAsync(model.Id));
+    }
+
+    public string Id { get; set; }
+    public string MachineTypeId { get; set; }
+    public Bitmap? Image { get; set; }
+    [Reactive] public int Count { get; set; }
+    [Reactive] public ReceptViewModel? CurrentRecept { get; set; }
+    public MachineReceptViewModel[] AvailableRecepts { get; set; }
+
+    [Reactive] public bool IsPopupOpenSelectResourceProcess { get; set; }
+
+    public ReactiveCommand<Unit, Unit> ChangeCurrentProcessOpenPopup { get; set; }
+    public ReactiveCommand<Unit, Unit> IncrementCountMachine { get; set; }
+    public ReactiveCommand<Unit, Unit> DecrementCountMachine { get; set; }
+}
+
 public class MainViewModel : ReactiveObject
 {
-    private readonly Player _player;
-    public GameData GameData { get; set; } = new GameData();
-
-
-    [Reactive] public ObservableKeyedCollection<ResourceItem> Resources { get; set; }
-    [Reactive] public ObservableKeyedCollection<MachineItem> Machines { get; set; }
-    [Reactive] public ObservableCollection<MachineTypeItem> AvailableMachineForBuilds { get; set; }
-
-    public Bitmap FullImage { get; set; }
-
+    private GameClient _client;
+    private string _playerId;
+    [Reactive] public ObservableKeyedCollection<ResourceContainerViewModel> Resources { get; set; } = null!;
+    [Reactive] public ObservableKeyedCollection<MachineViewModel> Machines { get; set; } = null!;
+    [Reactive] public ObservableKeyedCollection<MachineTypeViewModel> MachineTypes { get; set; }
+    [Reactive] public ObservableKeyedCollection<DepositViewModel> Deposits { get; set; }
+    public ObservableKeyedCollection<ReceptViewModel> Recepts { get; set; } = null!;
 
     public static Bitmap? LoadResources(string id)
     {
@@ -31,118 +159,72 @@ public class MainViewModel : ReactiveObject
             return null;
         return new Bitmap(stream);
     }
-    
-    public static Bitmap? LoadResources(IId id) => LoadResources(id.Id);
 
-    private void LoadReceptImage(ReceptItem recept)
+
+    private MachineViewModel Create(MachineModel machineModel, GameClient gameClient)
     {
-        recept.Image = LoadResources(recept.Id);
-        foreach (var sourceReceptItem in recept.SourceReceptItems)
-            sourceReceptItem.Image = LoadResources(sourceReceptItem.ResourceTypeId);
-        foreach (var destinationReceptItem in recept.DestinationReceptItems)
-            destinationReceptItem.Image = LoadResources(destinationReceptItem.ResourceTypeId);
-    }
-    
-    private void LoadMachineImage(MachineItem machine)
-    {
-        machine.Image = LoadResources(machine.MachineTypeId);
-        machine.ChangeCurrentProcessOpenPopup = ReactiveCommand.Create(() =>
+        var machineViewModel = new MachineViewModel(machineModel, Recepts, MachineTypes, gameClient)
         {
-            machine.IsPopupOpenSelectResourceProcess = true;
-        });
-        foreach (var availableRecept in machine.AvailableRecepts)
+        };
+        foreach (var recept in machineViewModel.AvailableRecepts)
         {
-            availableRecept.ChangeCurrentProcess = ReactiveCommand.Create(() =>
+            recept.ChangeCurrentProcess = ReactiveCommand.CreateFromTask(async () =>
             {
-                machine.IsPopupOpenSelectResourceProcess = false;
-                _player.ChangeRecept(machine.Id, availableRecept.ReceptItem.Id);
+                await _client.ChangeReceptAsync(machineModel.Id, recept.ReceptItem.Id);
+                machineViewModel.CurrentRecept = Recepts[recept.ReceptItem.Id];
+
+                machineViewModel.IsPopupOpenSelectResourceProcess = false;
             });
-            LoadReceptImage(availableRecept.ReceptItem);
         }
-        if (machine.CurrentRecept != null) 
-            LoadReceptImage(machine.CurrentRecept);
+
+        return machineViewModel;
     }
-    
-    public void ChangeUpdateModel(UpdateModel updateModel)
-    {
-
-        if (updateModel.InitVm != null)
-        {
-            Resources = new ObservableKeyedCollection<ResourceItem>(updateModel.InitVm.ResourceItems, item => item.ResourceTypeId);
-            foreach (var resource in Resources)
-                resource.Image = LoadResources(resource.ResourceTypeId);
-
-            Recepts = new ObservableKeyedCollection<ReceptItem>(updateModel.InitVm.ReceptItems, item => item.Id);
-
-            AvailableMachineForBuilds = new ObservableKeyedCollection<MachineTypeItem>(updateModel.InitVm.MachineTypeItems, item => item.Id);
-            foreach (var machineTypeItem in AvailableMachineForBuilds)
-            {
-                machineTypeItem.Image = LoadResources(machineTypeItem.Id);
-                machineTypeItem.CreateMachine = ReactiveCommand.Create(() => { _player.CreateMachine(machineTypeItem.Id, null); });
-            }
-            Machines = new ObservableKeyedCollection<MachineItem>(updateModel.InitVm.MachineItems, item => item.Id);
-            foreach (var machine in Machines) 
-                LoadMachineImage(machine);
-        }
-
-        if (updateModel.CreateMachine != null)
-        {
-            LoadMachineImage(updateModel.CreateMachine);
-            Machines.Add(updateModel.CreateMachine);
-        }
-
-        if (updateModel.ChangeRecept != null)
-        {
-            var machine = Machines[updateModel.ChangeRecept.MachineId];
-            machine.CurrentRecept = updateModel.ChangeRecept.ReceptId == null ? null : Recepts[updateModel.ChangeRecept.ReceptId];
-        }
-
-
-        // foreach (var resource in updateModel.Resources)
-        // {
-        //     )
-        //     if (Resources.TryGetValue(resource.ResourceTypeId, out var resourceItem) == false)
-        //     {
-        //         resourceItem = ResourceItem.CreateViewModel(resource.ResourceTypeId, resource.Count);
-        //         Resources.Add(resourceItem);
-        //     }
-        //     else
-        //         resourceItem.Count = resource.Count;
-        // }
-    }
-
-    public ObservableKeyedCollection<ReceptItem> Recepts { get; set; }
 
     public MainViewModel()
     {
-        _player = new Player(ChangeUpdateModel, GameData)
-        {
-            //Machines =
-            //[
-                //new Machine(GameData.Miner, GameData.MineIronOre),
-                // new(GameData.Miner, GameData.MineIronOre),
-                // new(GameData.Miner, GameData.MineCoupleOre),
-                //new(GameData.Smelter, GameData.MeltIronOre),
-                // new(GameData.Smelter, GameData.MeltIronOre),
-                // new(GameData.Smelter, GameData.MeltIronOre)
-            //]
-        };
-        //Resources = new ObservableKeyedCollection<ResourceItem>(m=> m.ResourceTypeId);
-        
-        //Machines = new ObservableCollection<MachineItem>(_player.Machines.Select(machine => MachineItem.CreateViewModel(this, _player, machine)));
-
-        //AvailableMachineForBuilds = new ObservableCollection<MachineTypeItem>(GameData.AllMachinesTypes.Select(machineType => MachineTypeItem.CreateViewModel(this, _player, machineType)));
-
         Task.Run(async () =>
         {
+            var gameName = "game1";
+            //_client = RestService.For<ICommunicationContract>($"http://localhost:5000/");
+
+            var httpClient = new HttpClient();
+            _client = new GameClient($"http://localhost:5000/", httpClient);
+            await _client.CreateGameAsync(gameName);
+            _playerId = await _client.CreatePlayerAsync(gameName);
+            await _client.StartGameAsync(gameName);
+            httpClient.DefaultRequestHeaders.Add("playerId", _playerId);
+        
+            var initVm = await _client.GetInitModelAsync();
+            Resources = new ObservableKeyedCollection<ResourceContainerViewModel>(initVm.Resources.Select(resourceModel => new ResourceContainerViewModel(resourceModel,_client)), item => item.ResourceTypeId);
+            foreach (var resource in Resources)
+                resource.Image = LoadResources(resource.ResourceTypeId);
+            Recepts = new ObservableKeyedCollection<ReceptViewModel>(initVm.Recepts.Select(receptModel => new ReceptViewModel(receptModel)), item => item.Id);
+            MachineTypes = new ObservableKeyedCollection<MachineTypeViewModel>(initVm.MachineTypes.Select(machineTypeModel => new MachineTypeViewModel(machineTypeModel)
+            {
+                CreateMachine = ReactiveCommand.CreateFromTask(async () =>
+                {
+                    var machineModel = await _client.CreateMachineAsync(machineTypeModel.Id, null);
+                    if (machineModel != null)
+                        Machines.Add(Create(machineModel, _client));
+                })
+            }), item => item.Id);
+            Machines = new ObservableKeyedCollection<MachineViewModel>(initVm.Machines.Select(machineModel => Create(machineModel, _client)), item => item.Id);
+            Deposits = new ObservableKeyedCollection<DepositViewModel>(initVm.Deposits.Select(depositModel => new DepositViewModel(depositModel)), model => model.ResourceTypeId);
+
             while (true)
             {
+                var state = await _client.GetModelStateAsync();
+                foreach (var resource in state.Resources)
+                    Resources[resource.ResourceTypeId].Count = resource.Count;
+                foreach (var deposit in state.UsedDeposits)
+                {
+                    Deposits[deposit.ResourceTypeId].Count = deposit.Count;
+                    Deposits[deposit.ResourceTypeId].Performance = deposit.Performance;
+                    Deposits[deposit.ResourceTypeId].UsedSlots = deposit.UsedSlots;
+                }
 
-                _player.Turn();
-                await Task.Delay(100);
+                await Task.Delay(50);
             }
         });
     }
 }
-
-

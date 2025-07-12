@@ -75,14 +75,14 @@ public class FormattedTextBlock : TextBlock
     
     private void UpdateText()
     {
-        
-        if (Value != null && StringFormat != null)
-        {
-            Text = FormatWithPrefix(Value.Value);
-        }
-        else
-        {
-            Text = Value?.ToString() ?? string.Empty;
-        }
+        Text = FormatWithPrefix(Value.Value);
+        // if (Value != null)
+        // {
+        //     Text = FormatWithPrefix(Value.Value);
+        // }
+        // else
+        // {
+        //     Text = Value?.ToString() ?? string.Empty;
+        // }
     }
 }

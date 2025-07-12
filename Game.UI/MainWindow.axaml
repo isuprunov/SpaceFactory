@@ -7,6 +7,6 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Game.UI.MainWindow" Width="1980" Height="1080"
         x:DataType="vm:MainViewModel"
-        Title="Tkrs.MultiTool">
+        Title="Game.UI">
         <view:MainView Margin="1,1,1,8" />
 </Window>

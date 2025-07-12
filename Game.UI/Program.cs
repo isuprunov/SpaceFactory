@@ -3,7 +3,7 @@ using Avalonia.ReactiveUI;
 
 namespace Game.UI;
 
-internal static class Program
+public static class Program
 {
     [STAThread]
     public static void Main(string[] args) => BuildAvaloniaApp()

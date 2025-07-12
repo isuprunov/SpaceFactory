@@ -1,77 +1,112 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:viewModel="clr-namespace:Game.UI.ViewModel"
-                    xmlns:ui="clr-namespace:Game.UI"
-                    xmlns:events="clr-namespace:Game.UI.Events">
+                    xmlns:ui="clr-namespace:Game.UI">
 
-    <DataTemplate x:Key="ResourceDataTemplate" x:DataType="events:ResourceItem">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition SharedSizeGroup="Col1" Width="Auto" />
-                <ColumnDefinition SharedSizeGroup="Col2" Width="Auto" />
-            </Grid.ColumnDefinitions>
+    <DataTemplate x:Key="ResourceContainerDataTemplate" x:DataType="viewModel:ResourceContainerViewModel">
+        <Grid RowDefinitions="Auto Auto" ColumnDefinitions="Auto">
+        <StackPanel Orientation="Horizontal">
             <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
-            <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat={}{0:F2}}" HorizontalAlignment="Right" />
+            <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
+            <TextBlock Text="/" HorizontalAlignment="Right" />
+            <ui:FormattedTextBlock Value="{Binding MaxCount}" HorizontalAlignment="Right" />
+            
+        </StackPanel>
+            <Slider Grid.Row="1" Minimum="0" HorizontalAlignment="Stretch"
+                    Maximum="1000"
+                    TickFrequency="10"
+                    IsSnapToTickEnabled="True"
+                    TickPlacement="None"
+                    Orientation="Horizontal"
+                    Value="{Binding MaxCount}" />
         </Grid>
+    </DataTemplate>
+    
+    <DataTemplate x:Key="DepositDataTemplate" x:DataType="viewModel:DepositViewModel">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+                <ui:FormattedTextBlock Value="{Binding Count}" />
+                <TextBlock Text="/"  />
+                <ui:FormattedTextBlock Value="{Binding BeginCount}"  />
+                <TextBlock Text="|"  />
+                <TextBlock Text="/"  />
+                <TextBlock Text="{Binding PerformanceInPercent}"  />
+                <TextBlock Text="/"  />
+                <TextBlock Text="{Binding BeginPerformanceInPercent}"  />
+                <TextBlock Text="|"  />
+                <TextBlock Text="{Binding UsedSlots}"  />
+                <TextBlock Text="/"  />
+                <TextBlock Text="{Binding Slots}"  />
+                
+            </StackPanel>
+    </DataTemplate>
+    
+    <DataTemplate x:Key="ResourceCostDataTemplate" x:DataType="viewModel:ResourceCostViewModel">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+                <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
+            </StackPanel>
     </DataTemplate>
 
     <ItemsPanelTemplate x:Key="HorizontalItemsPanel">
         <StackPanel Orientation="Horizontal" />
     </ItemsPanelTemplate>
 
-   
-    <DataTemplate x:Key="ReceptDataTemplate" x:DataType="events:ReceptItem">
+
+    <DataTemplate x:Key="ReceptDataTemplate" x:DataType="viewModel:ReceptViewModel">
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition SharedSizeGroup="Col1" Width="Auto" />
-                <ColumnDefinition SharedSizeGroup="Col2" Width="Auto" />
-                <ColumnDefinition SharedSizeGroup="Col3" Width="Auto" />
-                <ColumnDefinition SharedSizeGroup="Col4" Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
             <ItemsControl Grid.Column="1"
-                          ItemsSource="{Binding SourceReceptItems}"
-                          ItemTemplate="{StaticResource ResourceDataTemplate}"
+                          ItemsSource="{Binding InResources}"
+                          ItemTemplate="{StaticResource ResourceCostDataTemplate}"
                           ItemsPanel="{StaticResource HorizontalItemsPanel}">
 
             </ItemsControl>
-            <TextBlock Text=" -> " Grid.Column="2" IsVisible="{Binding !DestinationReceptItemEmpty}" />
+            <TextBlock Text=" -> " Grid.Column="2" IsVisible="{Binding DestinationReceptItemNotEmpty}" />
             <ItemsControl Grid.Column="3"
-                          ItemsSource="{Binding DestinationReceptItems}"
-                          ItemTemplate="{StaticResource ResourceDataTemplate}"
+                          ItemsSource="{Binding OutResources}"
+                          ItemTemplate="{StaticResource ResourceCostDataTemplate}"
                           ItemsPanel="{StaticResource HorizontalItemsPanel}">
 
             </ItemsControl>
         </Grid>
     </DataTemplate>
 
-    <DataTemplate x:Key="PopupResourceProcessDataTemplate" x:DataType="events:MachineReceptItem">
+    <DataTemplate x:Key="PopupResourceProcessDataTemplate" x:DataType="viewModel:MachineReceptViewModel">
         <Button
             Command="{Binding ChangeCurrentProcess}">
             <ContentControl ContentTemplate="{StaticResource ReceptDataTemplate}" Content="{Binding ReceptItem}" />
         </Button>
     </DataTemplate>
 
-    <DataTemplate x:Key="MachineDataTemplate" x:DataType="events:MachineItem">
+    <DataTemplate x:Key="MachineDataTemplate" x:DataType="viewModel:MachineViewModel">
         <Grid ColumnDefinitions="Auto Auto Auto Auto Auto">
-            <TextBlock Text="{Binding Count}"/>
+            <TextBlock Text="{Binding Count}" />
             <Button Grid.Column="1" Command="{Binding ChangeCurrentProcessOpenPopup}">
                 <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
             </Button>
-            <ContentControl Grid.Column="2" ContentTemplate="{StaticResource ReceptDataTemplate}" Content="{Binding CurrentRecept}" />
-            <Popup Grid.Column="2" IsOpen="{Binding IsPopupOpenSelectResourceProcess, Mode=TwoWay}" Placement="Pointer" ui:PopupBehaviors.CloseOnClickOutside="True"
+            <ContentControl Grid.Column="2" ContentTemplate="{StaticResource ReceptDataTemplate}"
+                            Content="{Binding CurrentRecept}" />
+            <Popup Grid.Column="2" IsOpen="{Binding IsPopupOpenSelectResourceProcess, Mode=TwoWay}" Placement="Pointer"
+                   ui:PopupBehaviors.CloseOnClickOutside="True"
                    HorizontalOffset="-10" VerticalOffset="-10">
                 <Border x:Name="PopupWrapper" Background="Transparent">
-                <ItemsControl Grid.IsSharedSizeScope="True" ItemTemplate="{StaticResource PopupResourceProcessDataTemplate}"
-                              ItemsSource="{Binding AvailableRecepts}">
-                </ItemsControl></Border>
+                    <ItemsControl Grid.IsSharedSizeScope="True"
+                                  ItemTemplate="{StaticResource PopupResourceProcessDataTemplate}"
+                                  ItemsSource="{Binding AvailableRecepts}">
+                    </ItemsControl>
+                </Border>
             </Popup>
-            <Button Grid.Column="3" Content="Добавить" Command="{Binding AddMachine}"/>
-            <Button Grid.Column="4" Content="Удалить" Command="{Binding RemoveMachine}"/>
+            <Button Grid.Column="3" Content="Добавить" Command="{Binding IncrementCountMachine}" />
+            <Button Grid.Column="4" Content="Удалить" Command="{Binding DecrementCountMachine}" />
         </Grid>
     </DataTemplate>
-    
-    
 
-    
+
 </ResourceDictionary>

@@ -7,15 +7,12 @@ public class ObservableKeyedCollection<TValue> : ObservableCollection<TValue>
     private readonly Func<TValue, string> _keySelector;
     private readonly Dictionary<string, TValue> _dict = new();
 
-    public ObservableKeyedCollection(Func<TValue, string> keySelector)
+    public ObservableKeyedCollection(IEnumerable<TValue> collection, Func<TValue, string> keySelector) : base(collection)
     {
         _keySelector = keySelector;
-    }
-    
-    public ObservableKeyedCollection(IList<TValue> collection, Func<TValue, string> keySelector) : base(collection)
-    {
-        _keySelector = keySelector;
-        foreach (var item in collection)
+        
+        
+        foreach (var item in this.Items)
         {
             var key = _keySelector(item);
             _dict.Add(key, item);

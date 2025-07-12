@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:Game.UI"
              x:Class="Game.UI.App"
              RequestedThemeVariant="Dark">
     <Application.Resources>
@@ -16,6 +17,10 @@
         </Style>
         <Style Selector="TextBox">
             <Setter Property="FontFamily" Value="Monospace"/>
+        </Style>
+        <Style Selector="ui|FormattedTextBlock">
+            <Setter Property="FontFamily" Value="Monospace"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style Selector="ComboBox">
             <Setter Property="FontFamily" Value="Monospace"/>

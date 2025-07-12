@@ -19,10 +19,10 @@
         <PackageReference Include="ReactiveUI.Fody" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Game\Game.csproj" />
-    </ItemGroup>
-
+    <Target Name="GenerateClient" BeforeTargets="CoreCompile">
+        <Exec Command="nswag run client.nswag" />
+    </Target>
+    
     <ItemGroup>
         <EmbeddedResource Include="Assets\*.png" />
     </ItemGroup>
