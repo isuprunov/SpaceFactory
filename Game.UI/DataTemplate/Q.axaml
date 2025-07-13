@@ -1,17 +1,19 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:viewModel="clr-namespace:Game.UI.ViewModel"
+
                     xmlns:ui="clr-namespace:Game.UI">
+
 
     <DataTemplate x:Key="ResourceContainerDataTemplate" x:DataType="viewModel:ResourceContainerViewModel">
         <Grid RowDefinitions="Auto Auto" ColumnDefinitions="Auto">
-        <StackPanel Orientation="Horizontal">
-            <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
-            <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
-            <TextBlock Text="/" HorizontalAlignment="Right" />
-            <ui:FormattedTextBlock Value="{Binding MaxCount}" HorizontalAlignment="Right" />
-            
-        </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+                <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
+                <TextBlock Text="/" HorizontalAlignment="Right" />
+                <ui:FormattedTextBlock Value="{Binding MaxCount}" HorizontalAlignment="Right" />
+
+            </StackPanel>
             <Slider Grid.Row="1" Minimum="0" HorizontalAlignment="Stretch"
                     Maximum="1000"
                     TickFrequency="10"
@@ -21,31 +23,31 @@
                     Value="{Binding MaxCount}" />
         </Grid>
     </DataTemplate>
-    
+
     <DataTemplate x:Key="DepositDataTemplate" x:DataType="viewModel:DepositViewModel">
-            <StackPanel Orientation="Horizontal">
-                <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
-                <ui:FormattedTextBlock Value="{Binding Count}" />
-                <TextBlock Text="/"  />
-                <ui:FormattedTextBlock Value="{Binding BeginCount}"  />
-                <TextBlock Text="|"  />
-                <TextBlock Text="/"  />
-                <TextBlock Text="{Binding PerformanceInPercent}"  />
-                <TextBlock Text="/"  />
-                <TextBlock Text="{Binding BeginPerformanceInPercent}"  />
-                <TextBlock Text="|"  />
-                <TextBlock Text="{Binding UsedSlots}"  />
-                <TextBlock Text="/"  />
-                <TextBlock Text="{Binding Slots}"  />
-                
-            </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+            <ui:FormattedTextBlock Value="{Binding Count}" />
+            <TextBlock Text="/" />
+            <ui:FormattedTextBlock Value="{Binding BeginCount}" />
+            <TextBlock Text="|" />
+            <TextBlock Text="/" />
+            <TextBlock Text="{Binding PerformanceInPercent}" />
+            <TextBlock Text="/" />
+            <TextBlock Text="{Binding BeginPerformanceInPercent}" />
+            <TextBlock Text="|" />
+            <TextBlock Text="{Binding UsedSlots}" />
+            <TextBlock Text="/" />
+            <TextBlock Text="{Binding Slots}" />
+
+        </StackPanel>
     </DataTemplate>
-    
+
     <DataTemplate x:Key="ResourceCostDataTemplate" x:DataType="viewModel:ResourceCostViewModel">
-            <StackPanel Orientation="Horizontal">
-                <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
-                <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
-            </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
+            <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
+        </StackPanel>
     </DataTemplate>
 
     <ItemsPanelTemplate x:Key="HorizontalItemsPanel">
@@ -86,14 +88,14 @@
     </DataTemplate>
 
     <DataTemplate x:Key="MachineDataTemplate" x:DataType="viewModel:MachineViewModel">
-        <Grid ColumnDefinitions="Auto Auto Auto Auto Auto">
+        <StackPanel Orientation="Horizontal">
             <TextBlock Text="{Binding Count}" />
-            <Button Grid.Column="1" Command="{Binding ChangeCurrentProcessOpenPopup}">
+            <Button Command="{Binding ChangeCurrentProcessOpenPopup}">
                 <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
             </Button>
-            <ContentControl Grid.Column="2" ContentTemplate="{StaticResource ReceptDataTemplate}"
+            <ContentControl ContentTemplate="{StaticResource ReceptDataTemplate}"
                             Content="{Binding CurrentRecept}" />
-            <Popup Grid.Column="2" IsOpen="{Binding IsPopupOpenSelectResourceProcess, Mode=TwoWay}" Placement="Pointer"
+            <Popup IsOpen="{Binding IsPopupOpenSelectResourceProcess, Mode=TwoWay}" Placement="Pointer"
                    ui:PopupBehaviors.CloseOnClickOutside="True"
                    HorizontalOffset="-10" VerticalOffset="-10">
                 <Border x:Name="PopupWrapper" Background="Transparent">
@@ -103,9 +105,14 @@
                     </ItemsControl>
                 </Border>
             </Popup>
-            <Button Grid.Column="3" Content="Добавить" Command="{Binding IncrementCountMachine}" />
-            <Button Grid.Column="4" Content="Удалить" Command="{Binding DecrementCountMachine}" />
-        </Grid>
+
+            <Button Command="{Binding IncrementCountMachine}">
+                <Svg Width="32" Height="32" Path="avares://Game.UI/StaticAssets/Build.svg" />
+            </Button>
+            <Button Command="{Binding DecrementCountMachine}">
+                <Svg Width="32" Height="32" Path="avares://Game.UI/StaticAssets/Delete.svg" />
+            </Button>
+        </StackPanel>
     </DataTemplate>
 
 

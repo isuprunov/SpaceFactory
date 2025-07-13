@@ -12,12 +12,12 @@
     </Design.DataContext>
     <StackPanel>
         <HeaderedContentControl Header="Ресурсы">
-            <Grid ColumnDefinitions="* *">
+            <Grid ColumnDefinitions="* Auto">
                 <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Resources}"
                               ItemTemplate="{StaticResource ResourceContainerDataTemplate}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel>
+                            <WrapPanel ItemSpacing="4">
                                 
                             </WrapPanel>
                         </ItemsPanelTemplate>

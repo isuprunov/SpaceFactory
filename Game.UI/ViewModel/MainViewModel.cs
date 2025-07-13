@@ -210,7 +210,9 @@ public class MainViewModel : ReactiveObject
             }), item => item.Id);
             Machines = new ObservableKeyedCollection<MachineViewModel>(initVm.Machines.Select(machineModel => Create(machineModel, _client)), item => item.Id);
             Deposits = new ObservableKeyedCollection<DepositViewModel>(initVm.Deposits.Select(depositModel => new DepositViewModel(depositModel)), model => model.ResourceTypeId);
-
+            await MachineTypes["Miner"].CreateMachine.Execute();
+            
+            
             while (true)
             {
                 var state = await _client.GetModelStateAsync();

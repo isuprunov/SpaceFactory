@@ -17,6 +17,7 @@
         <PackageReference Include="Avalonia.ReactiveUI"  />
         <PackageReference Include="Avalonia.Controls.DataGrid"  />
         <PackageReference Include="ReactiveUI.Fody" />
+        <PackageReference Include="Svg.Controls.Skia.Avalonia" />
     </ItemGroup>
 
     <Target Name="GenerateClient" BeforeTargets="CoreCompile">
@@ -25,5 +26,8 @@
     
     <ItemGroup>
         <EmbeddedResource Include="Assets\*.png" />
+    </ItemGroup>
+    <ItemGroup>
+        <AvaloniaResource Include="StaticAssets\*.*" />
     </ItemGroup>
 </Project>
