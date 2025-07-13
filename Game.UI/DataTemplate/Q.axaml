@@ -16,7 +16,7 @@
             </StackPanel>
             <Slider Grid.Row="1" Minimum="0" HorizontalAlignment="Stretch"
                     Maximum="1000"
-                    TickFrequency="10"
+                    TickFrequency="20"
                     IsSnapToTickEnabled="True"
                     TickPlacement="None"
                     Orientation="Horizontal"
