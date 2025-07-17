@@ -1,0 +1,17 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Изоляция: толстая кривая -->
+    <path d="M5 80 Q25 20, 50 50 T95 20"
+          stroke="#555" stroke-width="12" fill="none" stroke-linecap="round" />
+
+    <!-- Жила: внутренняя линия -->
+    <path d="M5 80 Q25 20, 50 50 T95 20"
+          stroke="#ff6600" stroke-width="4" fill="none" stroke-linecap="round" />
+
+    <!-- Контактные точки -->
+    <circle cx="5" cy="80" r="5" fill="#222" stroke="#aaa" stroke-width="2"/>
+    <circle cx="95" cy="20" r="5" fill="#222" stroke="#aaa" stroke-width="2"/>
+
+    <!-- Электрическая молния -->
+    <path d="M50 35 L44 60 L52 60 L47 85 L70 55 L58 55 L64 35 Z"
+          fill="#ffd700" stroke="#ffa500" stroke-width="1.5" />
+</svg>

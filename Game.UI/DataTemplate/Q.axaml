@@ -12,15 +12,18 @@
                 <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
                 <TextBlock Text="/" HorizontalAlignment="Right" />
                 <ui:FormattedTextBlock Value="{Binding MaxCount}" HorizontalAlignment="Right" />
-
             </StackPanel>
-            <Slider Grid.Row="1" Minimum="0" HorizontalAlignment="Stretch"
-                    Maximum="1000"
-                    TickFrequency="20"
-                    IsSnapToTickEnabled="True"
-                    TickPlacement="None"
-                    Orientation="Horizontal"
-                    Value="{Binding MaxCount}" />
+            <!-- <Slider Grid.Row="1" Minimum="0" HorizontalAlignment="Stretch" VerticalAlignment="Center" -->
+            <!--         Background="Transparent" -->
+            <!--         Foreground="Transparent" -->
+            <!--         Focusable="False" -->
+            <!--         Maximum="1000" -->
+            <!--         TickFrequency="20" -->
+            <!--         IsSnapToTickEnabled="True" -->
+            <!--         TickPlacement="None" -->
+            <!--         Orientation="Horizontal" -->
+            <!--         Value="{Binding MaxCount}" /> -->
+            <ProgressBar Grid.Row="1" Minimum="0" Value="{Binding Count}" Maximum="{Binding MaxCount}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
         </Grid>
     </DataTemplate>
 
@@ -45,8 +48,8 @@
 
     <DataTemplate x:Key="ResourceCostDataTemplate" x:DataType="viewModel:ResourceCostViewModel">
         <StackPanel Orientation="Horizontal">
+            <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" TextAlignment="Right" MaxString="4" />
             <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
-            <ui:FormattedTextBlock Value="{Binding Count}" HorizontalAlignment="Right" />
         </StackPanel>
     </DataTemplate>
 
@@ -80,38 +83,27 @@
         </Grid>
     </DataTemplate>
 
-    <DataTemplate x:Key="PopupResourceProcessDataTemplate" x:DataType="viewModel:MachineReceptViewModel">
-        <Button
-            Command="{Binding ChangeCurrentProcess}">
-            <ContentControl ContentTemplate="{StaticResource ReceptDataTemplate}" Content="{Binding ReceptItem}" />
-        </Button>
-    </DataTemplate>
 
     <DataTemplate x:Key="MachineDataTemplate" x:DataType="viewModel:MachineViewModel">
         <StackPanel Orientation="Horizontal">
             <TextBlock Text="{Binding Count}" />
-            <Button Command="{Binding ChangeCurrentProcessOpenPopup}">
                 <Image Source="{Binding Image}" Width="32" Height="32" Stretch="Uniform" />
-            </Button>
-            <ContentControl ContentTemplate="{StaticResource ReceptDataTemplate}"
-                            Content="{Binding CurrentRecept}" />
-            <Popup IsOpen="{Binding IsPopupOpenSelectResourceProcess, Mode=TwoWay}" Placement="Pointer"
-                   ui:PopupBehaviors.CloseOnClickOutside="True"
-                   HorizontalOffset="-10" VerticalOffset="-10">
-                <Border x:Name="PopupWrapper" Background="Transparent">
-                    <ItemsControl Grid.IsSharedSizeScope="True"
-                                  ItemTemplate="{StaticResource PopupResourceProcessDataTemplate}"
-                                  ItemsSource="{Binding AvailableRecepts}">
-                    </ItemsControl>
-                </Border>
-            </Popup>
-
-            <Button Command="{Binding IncrementCountMachine}">
+            <!-- <Image Width="32" Height="32" Source="avares://Game.UI/StaticAssets/None.png" IsVisible="{Binding CurrentReceptNull}"/> -->
+            <Button Command="{Binding BuildMachine}" Classes="flat-button">
                 <Svg Width="32" Height="32" Path="avares://Game.UI/StaticAssets/Build.svg" />
             </Button>
-            <Button Command="{Binding DecrementCountMachine}">
+            <Button Command="{Binding DestroyMachine}" Classes="flat-button">
                 <Svg Width="32" Height="32" Path="avares://Game.UI/StaticAssets/Delete.svg" />
             </Button>
+            <Button Command="{Binding ComeToWorkMachine}" IsVisible="{Binding !CurrentReceptNull}" Classes="flat-button">
+                <Svg Width="32" Height="32" Path="avares://Game.UI/StaticAssets/Plus.svg" />
+            </Button>
+            <Button Command="{Binding IdleMachine}" IsVisible="{Binding !CurrentReceptNull}" Classes="flat-button">
+                <Svg Width="32" Height="32" Path="avares://Game.UI/StaticAssets/Minus.svg" />
+            </Button>
+            <ContentControl ContentTemplate="{StaticResource ReceptDataTemplate}" IsVisible="{Binding !CurrentReceptNull}"
+                            Content="{Binding CurrentRecept}" />
+            
         </StackPanel>
     </DataTemplate>
 

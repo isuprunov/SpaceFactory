@@ -12,41 +12,43 @@
     </Design.DataContext>
     <StackPanel>
         <HeaderedContentControl Header="Ресурсы">
-            <Grid ColumnDefinitions="* Auto">
+            <Grid ColumnDefinitions="* Auto Auto">
                 <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Resources}"
                               ItemTemplate="{StaticResource ResourceContainerDataTemplate}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel ItemSpacing="4">
-                                
                             </WrapPanel>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                 </ItemsControl>
                 <ItemsControl Grid.Column="1" Grid.IsSharedSizeScope="True" ItemsSource="{Binding Deposits}"
                               ItemTemplate="{StaticResource DepositDataTemplate}" />
+                <StackPanel>
+                    <TextBlock></TextBlock>
+                </StackPanel>
             </Grid>
         </HeaderedContentControl>
         <HeaderedContentControl Header="Машины">
             <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Machines}"
                           ItemTemplate="{StaticResource MachineDataTemplate}" />
         </HeaderedContentControl>
-        <HeaderedContentControl Header="Постройка">
-            <ItemsControl ItemsSource="{Binding MachineTypes}"
-                          ItemsPanel="{StaticResource HorizontalItemsPanel}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="viewModels:MachineTypeViewModel">
-                        <Button Command="{Binding CreateMachine}">
-                            <ToolTip.Tip>
-                                <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Cost}"
-                                              ItemTemplate="{StaticResource ResourceContainerDataTemplate}" />
-                            </ToolTip.Tip>
-                            <Image Width="32" Height="32" Stretch="Uniform" Source="{Binding Image}" />
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </HeaderedContentControl>
+        <!-- <HeaderedContentControl Header="Постройка"> -->
+        <!--     <ItemsControl ItemsSource="{Binding MachineTypes}" -->
+        <!--                   ItemsPanel="{StaticResource HorizontalItemsPanel}"> -->
+        <!--         <ItemsControl.ItemTemplate> -->
+        <!--             <DataTemplate x:DataType="viewModels:MachineTypeViewModel"> -->
+        <!--                 <Button Command="{Binding BuildMachine}"> -->
+        <!--                     <ToolTip.Tip> -->
+        <!--                         <ItemsControl Grid.IsSharedSizeScope="True" ItemsSource="{Binding Cost}" -->
+        <!--                                       ItemTemplate="{StaticResource ResourceContainerDataTemplate}" /> -->
+        <!--                     </ToolTip.Tip> -->
+        <!--                     <Image Width="32" Height="32" Stretch="Uniform" Source="{Binding Image}" /> -->
+        <!--                 </Button> -->
+        <!--             </DataTemplate> -->
+        <!--         </ItemsControl.ItemTemplate> -->
+        <!--     </ItemsControl> -->
+        <!-- </HeaderedContentControl> -->
 
     </StackPanel>
 </UserControl>

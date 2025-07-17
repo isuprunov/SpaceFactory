@@ -25,6 +25,7 @@
     <PackageVersion Include="ReactiveUI.Fody" Version="19.5.41" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.10" />
     <PackageVersion Include="SkiaSharp" Version="3.119.0" />
+    <PackageVersion Include="SkiaSharp.Svg" Version="1.60.0" />
     <PackageVersion Include="Svg.Controls.Skia.Avalonia" Version="11.3.0.1" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="9.0.3" />
     <PackageVersion Include="System.Drawing.Common" Version="9.0.6" />

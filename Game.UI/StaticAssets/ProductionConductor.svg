@@ -1,0 +1,21 @@
+<svg viewBox="0 30 100 55" xmlns="http://www.w3.org/2000/svg">
+    <!-- Катушка меди (сырьё) -->
+    <circle cx="15" cy="57" r="12" fill="#7a3e16" stroke="#b06e36" stroke-width="2"/>
+    <circle cx="15" cy="57" r="5" fill="#402010" stroke="#d08040" stroke-width="1"/>
+
+    <!-- Производственный блок -->
+    <rect x="30" y="42" width="20" height="30" rx="3"
+          fill="#333" stroke="#777" stroke-width="1.5"/>
+
+    <!-- Готовый электропроводник -->
+    <path d="M55 80 Q70 30, 95 50"
+          stroke="#555" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M55 80 Q70 30, 95 50"
+          stroke="#ff6600" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="55" cy="80" r="3" fill="#222" stroke="#aaa" stroke-width="1"/>
+    <circle cx="95" cy="50" r="3" fill="#222" stroke="#aaa" stroke-width="1"/>
+
+    <!-- Стрелка процесса -->
+    <path d="M25 57 h5 l-3 -3 m3 3 l-3 3"
+          stroke="#00c853" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

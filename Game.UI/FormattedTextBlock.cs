@@ -13,8 +13,8 @@ public class FormattedTextBlock : TextBlock
     public static readonly StyledProperty<double?> ValueProperty =
         AvaloniaProperty.Register<FormattedTextBlock, double?>(nameof(Value));
 
-    public static readonly StyledProperty<string?> StringFormatProperty =
-        AvaloniaProperty.Register<FormattedTextBlock, string?>(nameof(StringFormat));
+    public static readonly StyledProperty<int?> MaxStringProperty =
+        AvaloniaProperty.Register<FormattedTextBlock, int?>(nameof(MaxString));
 
     public double? Value
     {
@@ -22,10 +22,10 @@ public class FormattedTextBlock : TextBlock
         set => SetValue(ValueProperty, value);
     }
 
-    public string? StringFormat
+    public int? MaxString
     {
-        get => GetValue(StringFormatProperty);
-        set => SetValue(StringFormatProperty, value);
+        get => GetValue(MaxStringProperty);
+        set => SetValue(MaxStringProperty, value);
     }
     
     public static double MeasureTextWidth(string text, Typeface typeface, double fontSize)
@@ -51,14 +51,19 @@ public class FormattedTextBlock : TextBlock
     static FormattedTextBlock()
     {
         ValueProperty.Changed.AddClassHandler<FormattedTextBlock>((x, e) => x.UpdateText());
-        StringFormatProperty.Changed.AddClassHandler<FormattedTextBlock>((x, e) => x.UpdateText());
+        MaxStringProperty.Changed.AddClassHandler<FormattedTextBlock>((x, e) => x.UpdateText());
     }
 
     public FormattedTextBlock()
     {
-        Width = MeasureTextWidth("999.99M", new Typeface(FontFamily), FontSize);    
     }
-    
+
+    public override void ApplyTemplate()
+    {
+        Width = MaxString.HasValue ? MeasureTextWidth(new string(Enumerable.Repeat('1',MaxString.Value).ToArray()), new Typeface(FontFamily), FontSize) :
+            MeasureTextWidth("999.99M", new Typeface(FontFamily), FontSize);
+    }
+
     public static string FormatWithPrefix(double value)
     {
         string[] units = { "", "k", "M", "G", "T" };
@@ -75,6 +80,7 @@ public class FormattedTextBlock : TextBlock
     
     private void UpdateText()
     {
+        if(Value.HasValue)
         Text = FormatWithPrefix(Value.Value);
         // if (Value != null)
         // {

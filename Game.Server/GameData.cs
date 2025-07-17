@@ -11,90 +11,106 @@ public enum ResourceFormat
     Plates,
     Gas,
     Liquid,
+    Heat,
+    Energy,
+    Radiance,
+    ElectromagneticInterference
 }
 
 public enum MachineKind
 {
-    Miner, Production
+    Miner,
+    Production
 }
 
-public record class ResourceType(string Id, ResourceFormat Format) : IId;
+public record class ResourceType(string Id, ResourceFormat Format) : IId
+{
+    public ReceptPart ToReceptPart(int count) => new ReceptPart(this, count);
+}
 
-public record ResourceCost(ResourceType ResourceType, double Count)
+public record ReceptPart(ResourceType ResourceType, double Count)
 {
     public double Count { get; set; } = Count;
 }
 
-public record Recept(string Id, List<ResourceCost> InResources, List<ResourceCost> OutResources, double Speed) : IId;
+public record Recept(string Id, List<ReceptPart> InResources, List<ReceptPart> OutResources) : IId
+{
+    public static Recept Create(string id, List<ReceptPart> inResources, List<ReceptPart> outResources, double energy = 0, double heat = 0)
+    {
+        if (energy > 0)
+            inResources =
+            [
+                new ReceptPart(GameData.Energy, energy),
+                ..inResources
+            ];
+        else if (energy < 0)
+            outResources =
+            [
+                new ReceptPart(GameData.Energy, energy),
+                ..inResources
+            ];
+        if (heat > 0)
+            inResources =
+            [
+                new ReceptPart(GameData.Energy, heat),
+                ..inResources
+            ];
+        else if (heat < 0)
+            outResources =
+            [
+                new ReceptPart(GameData.Energy, heat),
+                ..inResources
+            ];
+        return new Recept(id, inResources, outResources);
+    }
+    
+    public static Recept Create(string id, double energy = 0, double heat = 0, params List<ReceptPart> resources)
+    {
+        if(energy != 0)
+            resources.Add(new ReceptPart(GameData.Energy, energy));
+        if(heat != 0)
+            resources.Add(new ReceptPart(GameData.Heat, heat));
+        var inResources = resources.Where(m=> m.Count > 0).ToList();
+        var outResources = resources.Where(m=> m.Count < 0).Select(m =>
+        {
+            m.Count *=-1;
+            return m;
+        }).ToList();
+        return new Recept(id, inResources, outResources);
+    }
+}
 
 public record MachineType(string Id, List<Recept> AvailableProcesses, Dictionary<ResourceType, double> Cost, double Size, double Weight, MachineKind MachineKind) : IId;
 
-public record class ResourceContainer(ResourceType ResourceType, double Count, double MaxCount)
+public interface IResourceCount
+{
+    public double Count { get; set; }
+    public ResourceType ResourceType { get; init; }
+}
+
+public record class ResourceContainer(ResourceType ResourceType, double Count, double MaxCount) : IResourceCount
 {
     public double Count { get; set; } = Count;
     public double MaxCount { get; set; } = MaxCount;
 }
 
-public class Deposit
+public class Deposit : IResourceCount
 {
-    public required double Count { get; set; }
+    public double Count { get; set; }
     public required double FirstCount { get; set; }
     public double Performance => double.Max(Count / FirstCount * BeginPerformance, BeginPerformance / 10);
     public required double BeginPerformance { get; set; }
     public required int UsedSlots { get; set; }
     public required int Slots { get; set; }
     public int FreeSlots => Slots - UsedSlots;
-    public required ResourceType ResourceType { get; set; }
+    public required ResourceType ResourceType { get; init; }
 }
 
 public record Machine(MachineType MachineType, Recept? CurrentRecept = null)
 {
-    private bool CanWork(Dictionary<string, ResourceContainer> resources, int factor) 
-    {
-        if (CurrentRecept == null)
-            return false;
-        var allNeedResourcesHas = CurrentRecept.InResources.All(partRecept => resources[partRecept.ResourceType.Id].Count >= partRecept.Count * factor * CurrentRecept.Speed);
-        var storageNotFull = CurrentRecept.OutResources.Any(resourceCost => resources[resourceCost.ResourceType.Id].MaxCount < 
-                                                                            resources[resourceCost.ResourceType.Id].Count + resourceCost.Count * factor * CurrentRecept.Speed) == false;
-        return allNeedResourcesHas && storageNotFull;
-    }
-    public void Work(Dictionary<string, ResourceContainer> resources)
-    {
-        if (CurrentRecept == null)
-            return;
-        var factor = Count;
-        if (CanWork(resources, factor) == false) 
-            return;
-        foreach (var partRecept in CurrentRecept.InResources)
-            resources[partRecept.ResourceType.Id].Count -= partRecept.Count * factor * CurrentRecept.Speed;
-        foreach (var partRecept in CurrentRecept.OutResources)
-            resources[partRecept.ResourceType.Id].Count += partRecept.Count * factor * CurrentRecept.Speed;
-    }
-    
-
-
-    public void WorkMiner(Dictionary<string, ResourceContainer> resources, Dictionary<string, Deposit>  deposits)
-    {
-        if (CurrentRecept == null)
-            return;
-        foreach (var resourceCost in CurrentRecept.OutResources)
-        {
-            if(deposits.TryGetValue(resourceCost.ResourceType.Id, out var deposit) == false)
-                continue;
-            if(deposit.FreeSlots == 0)
-                continue;
-            var useSlots = Count < deposit.FreeSlots ? Count : deposit.FreeSlots;
-            if (CanWork(resources, useSlots) == false) 
-                continue;
-            deposit.UsedSlots += useSlots;
-            var countResource = resourceCost.Count * useSlots * CurrentRecept.Speed;
-            deposit.Count -= countResource;
-            resources[resourceCost.ResourceType.Id].Count += countResource;
-        }
-    }
-
     public required int Count { get; set; }
     public Recept? CurrentRecept { get; set; } = CurrentRecept;
+    public ReceptPart? MinerRecept => CurrentRecept?.OutResources.Single();
     public required string Id { get; set; }
 }
 
@@ -130,6 +146,7 @@ public class GameData
     public readonly List<Recept> AllRecepts;
 
     // Machines
+    public readonly MachineType Heater;
     public readonly MachineType Miner;
     public readonly MachineType Smelter;
     public readonly MachineType BasicConstructor;
@@ -144,25 +161,45 @@ public class GameData
         CoupleOre = new ResourceType("CoupleOre", ResourceFormat.Particles);
         Coal = new ResourceType("Coal", ResourceFormat.Particles);
         Stone = new ResourceType("Stone", ResourceFormat.Particles);
+        Heat = new ResourceType("Heat", ResourceFormat.Heat);
+        Energy = new ResourceType("Energy", ResourceFormat.Energy);
+        // Radiance = new ResourceType("Radiance", ResourceFormat.Particles);
+        // ElectromagneticInterference = new ResourceType("ElectromagneticInterference", ResourceFormat.Particles);
+
 
         IronPlate = new ResourceType("IronPlate", ResourceFormat.Plates);
         CouplePlate = new ResourceType("CouplePlate", ResourceFormat.Plates);
         Conductor = new ResourceType("Conductor", ResourceFormat.Plates);
         Brick = new ResourceType("Brick", ResourceFormat.Plates);
 
-        AllResources = [Oil, IronOre, CoupleOre, Coal, Stone, IronPlate, CouplePlate, Conductor, Brick];
+        AllResources = [Oil, IronOre, CoupleOre, Coal, Stone, IronPlate, CouplePlate, Conductor, Brick, Heat, Energy];
 
-        MineIronOre = new Recept("MineIronOre", [], [new ResourceCost(IronOre, 1)], 1);
-        MineCoupleOre = new Recept("MineCoupleOre", [], [new ResourceCost(CoupleOre, 1)], 1);
+        BurnCoal = Recept.Create("BurnCoal", 0, -30, Coal.ToReceptPart(1));
+        MineIronOre = Recept.Create("MineIronOre", [], [new ReceptPart(IronOre, 1)]);
+        MineCoupleOre = Recept.Create("MineCoupleOre", [], [new ReceptPart(CoupleOre, 1)]);
+        MineCoupleOre = Recept.Create("MineCoalOre", [], [new ReceptPart(Coal, 1)]);
+        MineCoupleOre = Recept.Create("MineStone", [], [new ReceptPart(Stone, 1)]);
 
-        MeltIronOre = new Recept("MeltIronOre", [new ResourceCost(IronOre, 3)], [new ResourceCost(IronPlate, 1)], .1);
-        MeltCoupleOre = new Recept("MeltCoupleOre", [new ResourceCost(CoupleOre, 3)], [new ResourceCost(CouplePlate, 1)], 10);
-        NoneRecept = new Recept("NoneProcess", [], [], 0);
+        MeltIronOre = Recept.Create("MeltIronOre", 5, 1, IronOre.ToReceptPart(3), IronPlate.ToReceptPart(-1));
+        MeltCoupleOre = Recept.Create("MeltCoupleOre", [new ReceptPart(CoupleOre, 3)], [new ReceptPart(CouplePlate, 1)]);
+        MeltCoupleOre = Recept.Create("MeltCoupleOre", [new ReceptPart(CoupleOre, 3)], [new ReceptPart(CouplePlate, 1)]);
+        NoneRecept = Recept.Create("NoneProcess", [], []);
+        ProductionConductor = Recept.Create("ProductionConductor", [new ReceptPart(CouplePlate, 3)], [new ReceptPart(Conductor, 1)]);
+        RotateTurbine = Recept.Create("RotateTurbine", -10, 10);
 
-        AllRecepts = [MineCoupleOre, MineIronOre, MeltIronOre, MeltCoupleOre, NoneRecept];
+        AllRecepts = [MineCoupleOre, MineIronOre, MeltIronOre, MeltCoupleOre, ProductionConductor, BurnCoal,RotateTurbine];
 
-        ProductionConductor = new Recept("ProductionConductor", [new ResourceCost(CouplePlate, 3)], [new ResourceCost(Conductor, 1)], 10);
-
+        Turbine = new MachineType("Turbine", [RotateTurbine], new Dictionary<ResourceType, double>()
+        {
+            { Brick, 1 },
+            { IronPlate, 1 }
+        },1,1, MachineKind.Production);
+        
+        Heater = new MachineType("Heater", [BurnCoal], new Dictionary<ResourceType, double>()
+        {
+            { Brick, 1 },
+            { IronPlate, 1 }
+        },1,1, MachineKind.Production);
         Miner = new MachineType("Miner", [MineIronOre, MineCoupleOre], new Dictionary<ResourceType, double>()
         {
             { Brick, 1 },
@@ -179,10 +216,17 @@ public class GameData
             { IronPlate, 1 }
         }, 1, 1, MachineKind.Production);
 
-        AllMachinesTypes = [Miner, Smelter, BasicConstructor];
-        foreach (var machineType in AllMachinesTypes)
-        {
-            machineType.AvailableProcesses.Add(NoneRecept);
-        }
+        AllMachinesTypes = [Miner, Heater, Turbine, Smelter, BasicConstructor];
+        // foreach (var machineType in AllMachinesTypes) 
+        //     machineType.AvailableProcesses.Add(NoneRecept);
     }
+
+    public MachineType Turbine { get; set; }
+
+    public Recept RotateTurbine { get; set; }
+
+    public Recept BurnCoal { get; set; }
+
+    public static ResourceType Heat { get; set; }
+    public static ResourceType Energy { get; set; }
 }

@@ -28,12 +28,52 @@ public class GameInstance
                         gameData.IronOre.Id,
                         new Deposit
                         {
-                            Count = 10000,
-                            FirstCount = 10000,
+                            Count = 100000,
+                            FirstCount = 100000,
                             BeginPerformance = .7,
                             Slots = 3,
-                            ResourceType = gameData.IronOre,
-                            UsedSlots = 0
+                            UsedSlots = 0,
+                            ResourceType = _gameData.IronOre
+                            
+                        }
+                    },
+                    {
+                        gameData.CoupleOre.Id,
+                        new Deposit
+                        {
+                            Count = 100000,
+                            FirstCount = 100000,
+                            BeginPerformance = .7,
+                            Slots = 3,
+                            UsedSlots = 0,
+                            ResourceType = _gameData.IronOre
+                            
+                        }
+                    },
+                    {
+                        gameData.Stone.Id,
+                        new Deposit
+                        {
+                            Count = 100000,
+                            FirstCount = 100000,
+                            BeginPerformance = .7,
+                            Slots = 3,
+                            UsedSlots = 0,
+                            ResourceType = _gameData.IronOre
+                            
+                        }
+                    },
+                    {
+                        gameData.CoupleOre.Id,
+                        new Deposit
+                        {
+                            Count = 100000,
+                            FirstCount = 100000,
+                            BeginPerformance = .7,
+                            Slots = 3,
+                            UsedSlots = 0,
+                            ResourceType = _gameData.IronOre
+                            
                         }
                     }
                 }
@@ -53,7 +93,7 @@ public class GameInstance
                 foreach (var player in Players)
                     player.Turn();
                 mutex.ReleaseMutex();
-                await Task.Delay(100);
+                await Task.Delay(1000);
             }
         });
 }

@@ -1,3 +1,5 @@
+using Microsoft.OpenApi.Models;
+
 namespace Game.Server;
 
 public static class Program
@@ -5,6 +7,7 @@ public static class Program
     public static async Task Main()
     {
         var mutex = new Mutex();
+
         
         var games = new Dictionary<string, GameInstance>();
         var players = new Dictionary<string, Player>();
@@ -15,7 +18,12 @@ public static class Program
 
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.UseAllOfForInheritance();
+            c.UseAllOfToExtendReferenceSchemas();
+            c.UseOneOfForPolymorphism(); // <-- ключевая строка
+        });
 
         var app = builder.Build();
 
@@ -44,6 +52,17 @@ public static class Program
             game.Start(mutex);
         });
 
+        app.MapGet("/api/GetModelState", (HttpContext ctx) =>
+            {
+                var player = players[ctx.Request.Headers["playerId"]!];
+                mutex.WaitOne();
+                var res = player.GetModelState(); // возвращает List<IAnswer>
+                mutex.ReleaseMutex();
+                return Results.Ok(res);
+            })
+            .Produces<List<Answer>>();
+        
+
         PlayerEndpoint.RegisterEndpoint(app, players, mutex);
 
         app.UseSwagger();
@@ -52,5 +71,5 @@ public static class Program
 
         await app.RunAsync();
     }
+    
 }
-

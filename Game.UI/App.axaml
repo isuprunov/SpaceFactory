@@ -11,6 +11,22 @@
         </ResourceDictionary>
     </Application.Resources>
     <Application.Styles>
+        <Style Selector="Button.flat-button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <!-- Псевдоклассы, чтобы убрать реакции -->
+        <Style Selector="Button.flat-button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.flat-button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Button.flat-button:focused /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
         <Style Selector="TextBlock">
             <Setter Property="FontFamily" Value="Monospace"/>
             <Setter Property="VerticalAlignment" Value="Center"/>

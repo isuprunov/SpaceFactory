@@ -1,0 +1,17 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Корпус -->
+    <rect x="15" y="30" width="70" height="40" rx="8" fill="#444" stroke="#777" stroke-width="3" />
+
+    <!-- Пламя -->
+    <path d="M50 30 C46 20, 54 15, 50 10 C58 18, 60 25, 50 30 Z" fill="#ff5500" stroke="#ffaa00" stroke-width="1.5" />
+
+    <!-- Вход топлива -->
+    <rect x="38" y="70" width="24" height="10" rx="2" fill="#222" stroke="#555" stroke-width="1" />
+
+    <!-- Тепловые волны вверх -->
+    <g stroke="#ff9933" stroke-width="2" fill="none" opacity="0.6">
+        <path d="M30 90 Q35 80 40 90" />
+        <path d="M45 90 Q50 80 55 90" />
+        <path d="M60 90 Q65 80 70 90" />
+    </g>
+</svg>
