@@ -46,7 +46,7 @@ public class GameInstance
                             BeginPerformance = .7,
                             Slots = 3,
                             UsedSlots = 0,
-                            ResourceType = _gameData.IronOre
+                            ResourceType = _gameData.CoupleOre
                             
                         }
                     },
@@ -59,12 +59,12 @@ public class GameInstance
                             BeginPerformance = .7,
                             Slots = 3,
                             UsedSlots = 0,
-                            ResourceType = _gameData.IronOre
+                            ResourceType = _gameData.Stone
                             
                         }
                     },
                     {
-                        gameData.CoupleOre.Id,
+                        gameData.Coal.Id,
                         new Deposit
                         {
                             Count = 100000,
@@ -72,7 +72,7 @@ public class GameInstance
                             BeginPerformance = .7,
                             Slots = 3,
                             UsedSlots = 0,
-                            ResourceType = _gameData.IronOre
+                            ResourceType = _gameData.Coal
                             
                         }
                     }

@@ -109,16 +109,8 @@ public class MachineViewModel : ReactiveObject
         Count = model.Count;
         CurrentRecept = model.CurrentReceptId == null ? null : allRecepts[model.CurrentReceptId];
         this.WhenAnyValue(m => m.CurrentRecept).Subscribe(m => CurrentReceptNull = m == null);
-        BuildMachine = ReactiveCommand.CreateFromTask(async () =>
-        {
-            if (await gameClient.BuildMachineAsync(model.MachineTypeId, model.CurrentReceptId))
-                Count++;
-        });
-        DestroyMachine = ReactiveCommand.CreateFromTask(async () =>
-        {
-            if (await gameClient.DestroyMachineAsync(model.MachineTypeId, model.CurrentReceptId))
-                Count--;
-        });
+        BuildMachine = ReactiveCommand.CreateFromTask(() => gameClient.BuildMachineAsync(model.MachineTypeId, model.CurrentReceptId));
+        BuildMachine = ReactiveCommand.CreateFromTask(() => gameClient.BuildMachineAsync(model.MachineTypeId, model.CurrentReceptId));
 
 
         // AvailableRecepts = allMachineTypes[model.MachineTypeId].AvailableReceptIds.Select(m => new MachineReceptViewModel()
@@ -161,7 +153,9 @@ public class MainViewModel : ReactiveObject
     private GameClient _client;
     private string _playerId;
     [Reactive] public ObservableKeyedCollection<ResourceContainerViewModel> Resources { get; set; } = null!;
+
     [Reactive] public ObservableKeyedCollection<MachineViewModel> Machines { get; set; } = null!;
+
     //[Reactive] public ObservableKeyedCollection<MachineTypeViewModel> MachineTypes { get; set; }
     [Reactive] public ObservableKeyedCollection<DepositViewModel> Deposits { get; set; }
     public ObservableKeyedCollection<ReceptViewModel> Recepts { get; set; } = null!;
@@ -175,9 +169,8 @@ public class MainViewModel : ReactiveObject
         var bitmap = SvgHelper.LoadSvg($"avares://Game.UI/StaticAssets/{id}.svg", 32, 32);
         if (bitmap is not null)
             return bitmap;
-        
+
         return new Bitmap(new TextToPngRenderer(32, 32, "Monospace").Render(id));
-        
     }
 
 
@@ -185,22 +178,9 @@ public class MainViewModel : ReactiveObject
     {
         var machineViewModel = new MachineViewModel(machineModel, Recepts, gameClient)
         {
+            ComeToWorkMachine = ReactiveCommand.CreateFromTask(() => gameClient.ComeToWorkMachineAsync(machineModel.MachineTypeId, machineModel.CurrentReceptId)),
+            IdleMachine = ReactiveCommand.CreateFromTask(() => gameClient.IdleMachineAsync(machineModel.MachineTypeId, machineModel.CurrentReceptId))
         };
-        machineViewModel.ComeToWorkMachine = ReactiveCommand.CreateFromTask(async () =>
-        {
-            if (await gameClient.ComeToWorkMachineAsync(machineModel.MachineTypeId, machineModel.CurrentReceptId) == false)
-                return;
-            machineViewModel.Count++;
-            Machines[$"{machineModel.MachineTypeId}_"].Count--;
-        });
-        machineViewModel.IdleMachine = ReactiveCommand.CreateFromTask(async () =>
-        {
-            if (await gameClient.IdleMachineAsync(machineModel.MachineTypeId, machineModel.CurrentReceptId) == false)
-                return;
-            machineViewModel.Count--;
-            Machines[$"{machineModel.MachineTypeId}_"].Count++;
-        });
-
         return machineViewModel;
     }
 
@@ -241,18 +221,32 @@ public class MainViewModel : ReactiveObject
                 var state = await _client.GetModelStateAsync();
                 foreach (var answer in state)
                 {
-                    if (answer is BuildMachineAnswer )
+                    switch (answer)
                     {
-                        var buildMachineAnswer = answer as BuildMachineAnswer;
+                        case BuildMachineAnswer buildMachineAnswer:
+                            Machines[$"{buildMachineAnswer.}_{buildMachineAnswer.ReceptId}"].Count++;
+                            break;
+                        case DestroyMachineAnswer destroyMachineAnswer:
+                            Machines[$"{destroyMachineAnswer.MachineTypeId}_{destroyMachineAnswer.ReceptId}"].Count++;
+                            break;
+                        case SwapMachineAnswer swapMachineAnswer:
+                            Machines[$"{swapMachineAnswer.MachineTypeId}_{swapMachineAnswer.DecrementReceptId}"].Count--;
+                            Machines[$"{swapMachineAnswer.MachineTypeId}_{swapMachineAnswer.IncrementReceptId}"].Count++;
+                            break;
+                        case StateAnswer stateAnswer:
+                        {
+                            foreach (var resource in stateAnswer.Resources)
+                                Resources[resource.ResourceTypeId].Count = resource.Count;
+                            foreach (var deposit in stateAnswer.UsedDeposits)
+                            {
+                                Deposits[deposit.ResourceTypeId].Count = deposit.Count;
+                                Deposits[deposit.ResourceTypeId].Performance = deposit.Performance;
+                                Deposits[deposit.ResourceTypeId].UsedSlots = deposit.UsedSlots;
+                            }
+
+                            break;
+                        }
                     }
-                }
-                foreach (var resource in state.Resources)
-                    Resources[resource.ResourceTypeId].Count = resource.Count;
-                foreach (var deposit in state.UsedDeposits)
-                {
-                    Deposits[deposit.ResourceTypeId].Count = deposit.Count;
-                    Deposits[deposit.ResourceTypeId].Performance = deposit.Performance;
-                    Deposits[deposit.ResourceTypeId].UsedSlots = deposit.UsedSlots;
                 }
 
                 await Task.Delay(50);

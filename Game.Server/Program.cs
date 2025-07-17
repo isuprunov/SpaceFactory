@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Game.Server;
 
@@ -22,7 +24,12 @@ public static class Program
         {
             c.UseAllOfForInheritance();
             c.UseAllOfToExtendReferenceSchemas();
-            c.UseOneOfForPolymorphism(); // <-- ключевая строка
+            c.UseOneOfForPolymorphism();
+        });
+
+        builder.Services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.TypeInfoResolverChain.Insert(0, AnswerJsonContext.Default);
         });
 
         var app = builder.Build();
@@ -63,6 +70,8 @@ public static class Program
             .Produces<List<Answer>>();
         
 
+        
+
         PlayerEndpoint.RegisterEndpoint(app, players, mutex);
 
         app.UseSwagger();
@@ -73,3 +82,7 @@ public static class Program
     }
     
 }
+
+[JsonSerializable(typeof(List<Answer>))]
+[JsonSourceGenerationOptions(UseStringEnumConverter = true)]
+public partial class AnswerJsonContext : JsonSerializerContext;

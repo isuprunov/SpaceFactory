@@ -31,19 +31,20 @@ public record MachineTypeModel(string Id, string[] AvailableReceptIds, Dictionar
 
 public record DepositModel(string ResourceTypeId, double Count, double BeginCount, double Performance, double BeginPerformance, int Slots, int UsedSlots);
 
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(BuildMachineAnswer), nameof(BuildMachineAnswer))]
 [JsonDerivedType(typeof(DestroyMachineAnswer), nameof(DestroyMachineAnswer))]
 [JsonDerivedType(typeof(SwapMachineAnswer), nameof(SwapMachineAnswer))]
 [JsonDerivedType(typeof(ErrorAnswer), nameof(ErrorAnswer))]
 [JsonDerivedType(typeof(StateAnswer), nameof(StateAnswer))]
-public record Answer;
+public abstract class Answer;
 
-public record BuildMachineAnswer(string machineTypeId, string? receptId) : Answer;
-public record DestroyMachineAnswer(string machineTypeId, string? receptId) : Answer;
-public record SwapMachineAnswer(string machineTypeId, string? decrementReceptId, string? incrementReceptId) : Answer;
-public record ErrorAnswer(string error) : Answer;
+public class BuildMachineAnswer(string machineTypeId, string? receptId) : Answer;
+public class DestroyMachineAnswer(string machineTypeId, string? receptId) : Answer;
+public class SwapMachineAnswer(string machineTypeId, string? decrementReceptId, string? incrementReceptId) : Answer;
+public class ErrorAnswer(string error) : Answer;
 
-public record StateAnswer: Answer
+public class StateAnswer: Answer
 {
     public required ResourceContainerModel[] Resources { get; set; }
     public required DepositModel[] UsedDeposits { get; set; }
@@ -130,7 +131,7 @@ public class Player
     public List<Answer> GetModelState()
     {
         var answers = new List<Answer>();
-        while (_answers.TryPeek(out var answer)) 
+        while (_answers.TryDequeue(out var answer)) 
             answers.Add(answer);
         return answers;
     }
