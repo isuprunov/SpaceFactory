@@ -40,6 +40,8 @@ public class MachineLogic(Machine machine, Dictionary<string, ResourceContainer>
             return;
         if(ResourceMax())
             return;
+        if(machine.Count == 0)
+            return;
         var recept = machine.CurrentRecept;
         var consumeFactor = machine.Count  / (double)Step;
         var power = Math.Min(PowerInPercent(machine.CurrentRecept, consumeFactor), PowerOutPercent(machine.CurrentRecept, consumeFactor));
@@ -61,10 +63,14 @@ public class MachineLogic(Machine machine, Dictionary<string, ResourceContainer>
         if (zone.Deposits.TryGetValue(receptPart.ResourceType.Id, out var deposit) == false)
             return;
         var count = Math.Min(machine.Count, deposit.Slots);
+        if(count == 0)
+            return;
         deposit.UsedSlots = count;
         var consumeFactor = count * deposit.Performance / Step;
         var power = Math.Min(PowerInPercent(deposit, receptPart, consumeFactor), PowerOutPercent(receptPart, consumeFactor));
         Consume(deposit, receptPart, consumeFactor, power);
         Produce(receptPart, consumeFactor, power);
+        
+        
     }
 }

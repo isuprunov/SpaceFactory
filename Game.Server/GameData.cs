@@ -8,13 +8,14 @@ public interface IId
 public enum ResourceFormat
 {
     Particles,
-    Plates,
+    Unit,
     Gas,
     Liquid,
     Heat,
     Energy,
     Radiance,
-    ElectromagneticInterference
+    ElectromagneticInterference,
+    LogisticsDrone
 }
 
 public enum MachineKind
@@ -132,6 +133,9 @@ public class GameData
     public readonly ResourceType CouplePlate;
     public readonly ResourceType Brick;
     public readonly ResourceType Conductor;
+    
+    public static ResourceType Heat { get; set; }
+    public static ResourceType Energy { get; set; }
 
     public readonly List<ResourceType> AllResources;
 
@@ -163,16 +167,17 @@ public class GameData
         Stone = new ResourceType("Stone", ResourceFormat.Particles);
         Heat = new ResourceType("Heat", ResourceFormat.Heat);
         Energy = new ResourceType("Energy", ResourceFormat.Energy);
+        LogisticDrone = new ResourceType("LogisticDrone", ResourceFormat.LogisticsDrone);
         // Radiance = new ResourceType("Radiance", ResourceFormat.Particles);
         // ElectromagneticInterference = new ResourceType("ElectromagneticInterference", ResourceFormat.Particles);
 
 
-        IronPlate = new ResourceType("IronPlate", ResourceFormat.Plates);
-        CouplePlate = new ResourceType("CouplePlate", ResourceFormat.Plates);
-        Conductor = new ResourceType("Conductor", ResourceFormat.Plates);
-        Brick = new ResourceType("Brick", ResourceFormat.Plates);
+        IronPlate = new ResourceType("IronPlate", ResourceFormat.Unit);
+        CouplePlate = new ResourceType("CouplePlate", ResourceFormat.Unit);
+        Conductor = new ResourceType("Conductor", ResourceFormat.Unit);
+        Brick = new ResourceType("Brick", ResourceFormat.Unit);
 
-        AllResources = [Oil, IronOre, CoupleOre, Coal, Stone, IronPlate, CouplePlate, Conductor, Brick, Heat, Energy];
+        AllResources = [Oil, IronOre, CoupleOre, Coal, Stone, IronPlate, CouplePlate, Conductor, Brick, Heat, Energy, LogisticDrone];
 
         BurnCoal = Recept.Create("BurnCoal", 0, -30, Coal.ToReceptPart(1));
         MineIronOre = Recept.Create("MineIronOre", [], [new ReceptPart(IronOre, 1)]);
@@ -186,8 +191,10 @@ public class GameData
         NoneRecept = Recept.Create("NoneProcess", [], []);
         ProductionConductor = Recept.Create("ProductionConductor", [new ReceptPart(CouplePlate, 3)], [new ReceptPart(Conductor, 1)]);
         RotateTurbine = Recept.Create("RotateTurbine", -10, 10);
+        
+        ProductionLogisticDroneInCore = Recept.Create("ProductionLogisticDroneInCore", 0, 0, [new ReceptPart(LogisticDrone, -1)] );
 
-        AllRecepts = [MineCoupleOre, MineIronOre, MeltIronOre, MeltCoupleOre, ProductionConductor, BurnCoal,RotateTurbine];
+        AllRecepts = [MineCoupleOre, MineIronOre, MeltIronOre, MeltCoupleOre, ProductionConductor, BurnCoal,RotateTurbine, ProductionLogisticDroneInCore];
 
         Turbine = new MachineType("Turbine", [RotateTurbine], new Dictionary<ResourceType, double>()
         {
@@ -215,11 +222,24 @@ public class GameData
             { Brick, 1 },
             { IronPlate, 1 }
         }, 1, 1, MachineKind.Production);
+        
+        Core = new MachineType("Core", [ProductionLogisticDroneInCore], new Dictionary<ResourceType, double>()
+        {
+            { Brick, 1 },
+            { IronPlate, 1 }
+        }, 1, 1, MachineKind.Production);
+        
+        //var q = typeof(GameData).GetProperties().Where(m => m.PropertyType == typeof(ResourceType)).ToArray();
 
-        AllMachinesTypes = [Miner, Heater, Turbine, Smelter, BasicConstructor];
-        // foreach (var machineType in AllMachinesTypes) 
-        //     machineType.AvailableProcesses.Add(NoneRecept);
+        AllMachinesTypes = [Miner, Heater, Turbine, Smelter, BasicConstructor, Core];
+        
     }
+
+    public MachineType Core { get; set; }
+
+    public Recept ProductionLogisticDroneInCore { get; set; }
+
+    public ResourceType LogisticDrone { get; set; }
 
     public MachineType Turbine { get; set; }
 
@@ -227,6 +247,5 @@ public class GameData
 
     public Recept BurnCoal { get; set; }
 
-    public static ResourceType Heat { get; set; }
-    public static ResourceType Energy { get; set; }
+
 }

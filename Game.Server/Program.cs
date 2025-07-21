@@ -22,15 +22,9 @@ public static class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
         {
-            c.UseAllOfForInheritance();
-            c.UseAllOfToExtendReferenceSchemas();
             c.UseOneOfForPolymorphism();
         });
-
-        builder.Services.ConfigureHttpJsonOptions(options =>
-        {
-            options.SerializerOptions.TypeInfoResolverChain.Insert(0, AnswerJsonContext.Default);
-        });
+        
 
         var app = builder.Build();
 
@@ -70,7 +64,7 @@ public static class Program
             .Produces<List<Answer>>();
         
 
-        
+         
 
         PlayerEndpoint.RegisterEndpoint(app, players, mutex);
 
@@ -82,7 +76,3 @@ public static class Program
     }
     
 }
-
-[JsonSerializable(typeof(List<Answer>))]
-[JsonSourceGenerationOptions(UseStringEnumConverter = true)]
-public partial class AnswerJsonContext : JsonSerializerContext;

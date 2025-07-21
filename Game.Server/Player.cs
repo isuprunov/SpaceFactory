@@ -31,30 +31,50 @@ public record MachineTypeModel(string Id, string[] AvailableReceptIds, Dictionar
 
 public record DepositModel(string ResourceTypeId, double Count, double BeginCount, double Performance, double BeginPerformance, int Slots, int UsedSlots);
 
+
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(BuildMachineAnswer), nameof(BuildMachineAnswer))]
 [JsonDerivedType(typeof(DestroyMachineAnswer), nameof(DestroyMachineAnswer))]
 [JsonDerivedType(typeof(SwapMachineAnswer), nameof(SwapMachineAnswer))]
 [JsonDerivedType(typeof(ErrorAnswer), nameof(ErrorAnswer))]
 [JsonDerivedType(typeof(StateAnswer), nameof(StateAnswer))]
-public abstract class Answer;
+public class Answer { }
 
-public class BuildMachineAnswer(string machineTypeId, string? receptId) : Answer;
-public class DestroyMachineAnswer(string machineTypeId, string? receptId) : Answer;
-public class SwapMachineAnswer(string machineTypeId, string? decrementReceptId, string? incrementReceptId) : Answer;
-public class ErrorAnswer(string error) : Answer;
-
-public class StateAnswer: Answer
+public class BuildMachineAnswer(string machineTypeId, string? receptId) : Answer
 {
-    public required ResourceContainerModel[] Resources { get; set; }
-    public required DepositModel[] UsedDeposits { get; set; }
-    public required double CurrentSize { get; set; }
-    public required double CurrentWeight { get; set; }
-    public required double MaxSize { get; set; }
-    public required double MaxWeight { get; set; }
+    public string MachineTypeId { get; set; } = machineTypeId;
+    public string? ReceptId { get; set; } = receptId;
 }
 
-public class InitAnswer
+public class DestroyMachineAnswer(string machineTypeId, string? receptId) : Answer
+{
+    public string MachineTypeId { get; set; } = machineTypeId;
+    public string? ReceptId { get; set; } = receptId;
+}
+
+public class SwapMachineAnswer(string machineTypeId, string? decrementReceptId, string? incrementReceptId) : Answer
+{
+    public string MachineTypeId { get; set; } = machineTypeId;
+    public string? DecrementReceptId { get; set; } = decrementReceptId;
+    public string? IncrementReceptId { get; set; } = incrementReceptId;
+}
+
+public class ErrorAnswer(string error) : Answer
+{
+    public string Error { get; set; } = error;
+}
+
+public class StateAnswer : Answer
+{
+    public ResourceContainerModel[] Resources { get; set; } = default!;
+    public DepositModel[] UsedDeposits { get; set; } = default!;
+    public double CurrentSize { get; set; }
+    public double CurrentWeight { get; set; }
+    public double MaxSize { get; set; }
+    public double MaxWeight { get; set; }
+}
+
+public class InitAnswer 
 {
     public required ResourceContainerModel[] Resources { get; set; }
     public required ReceptModel[] Recepts { get; set; }
@@ -108,6 +128,8 @@ public class Player
             };
             Machines.Add(machine.Id, machine);
         }
+
+        Machines[$"{nameof(gameData.Core)}_{nameof(_gameData.ProductionLogisticDroneInCore)}"].Count = 1;
     }
 
     private Dictionary<string, ResourceContainer> Resources { get; set; }
@@ -215,17 +237,29 @@ public class Player
     [IgnoreRpcMethod]
     public void Turn()
     {
+        var resourceTmp = Resources.ToDictionary(m=> m.Key, m =>
+        {
+            var resourceContainer = m.Value;
+            return new ResourceContainer(resourceContainer.ResourceType, 0, resourceContainer.MaxCount - resourceContainer.Count);
+        });
         for (var i = 0; i < MachineLogic.Step; i++)
+        {
             foreach (var (_, machine) in Machines)
             {
-                var machineLogic = new MachineLogic(machine, Resources);
+                var machineLogic = new MachineLogic(machine, resourceTmp);
                 if (machine.MachineType.MachineKind == MachineKind.Miner)
                     machineLogic.WorkMinerMachine(_zone);
                 if (machine.MachineType.MachineKind == MachineKind.Production)
                     machineLogic.WorkProductionMachine();
             }
+        }
+        var sum = resourceTmp.Values.Where(m => m.ResourceType.Format is ResourceFormat.Liquid or ResourceFormat.Particles or ResourceFormat.Unit).Select(m => m.Count).Sum();
+        var drones = Resources[_gameData.LogisticDrone.Id].Count;
+        var factor = drones > sum ? 1.0 : drones / sum;
+        foreach (var (key, value) in resourceTmp)
+            Resources[key].Count += value.Count * factor;
 
-        _answers.Enqueue(new StateAnswer()
+        _answers.Enqueue(new StateAnswer
         {
             Resources = Resources.Select(pair => pair.Value).Select(ModelExtensions.CreateModel).ToArray(),
             UsedDeposits = _zone.Deposits.Select(m => m.Value.CreateModel()).ToArray(),

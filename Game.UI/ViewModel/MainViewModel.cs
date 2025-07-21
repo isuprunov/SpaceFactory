@@ -1,6 +1,8 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Avalonia.Media.Imaging;
 using Game.Client;
 using ReactiveUI;
@@ -19,7 +21,7 @@ public class ResourceContainerViewModel : ReactiveObject
         Image = MainViewModel.LoadResources(model.ResourceTypeId);
         this.WhenAnyValue(x => x.MaxCount)
             .Throttle(TimeSpan.FromMilliseconds(300))
-            .SelectMany(x => Observable.FromAsync(() => client.SetMaxCountResourceAsync(ResourceTypeId, x)))
+            .SelectMany(x => Observable.FromAsync(() => client.SetMaxCountResourceAsync(ResourceTypeId,x)))
             .Subscribe();
     }
 
@@ -189,6 +191,11 @@ public class MainViewModel : ReactiveObject
         Task.Run(async () =>
         {
             var gameName = "game1";
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            options.Converters.Add(new AnswerJsonConverter());
             var httpClient = new HttpClient();
             _client = new GameClient($"http://localhost:5000/", httpClient);
             await _client.CreateGameAsync(gameName);
@@ -221,10 +228,11 @@ public class MainViewModel : ReactiveObject
                 var state = await _client.GetModelStateAsync();
                 foreach (var answer in state)
                 {
+                    
                     switch (answer)
                     {
                         case BuildMachineAnswer buildMachineAnswer:
-                            Machines[$"{buildMachineAnswer.}_{buildMachineAnswer.ReceptId}"].Count++;
+                            Machines[$"{buildMachineAnswer.MachineTypeId}"].Count++;
                             break;
                         case DestroyMachineAnswer destroyMachineAnswer:
                             Machines[$"{destroyMachineAnswer.MachineTypeId}_{destroyMachineAnswer.ReceptId}"].Count++;
@@ -252,5 +260,33 @@ public class MainViewModel : ReactiveObject
                 await Task.Delay(50);
             }
         });
+    }
+}
+
+public class AnswerJsonConverter : JsonConverter<Answer>
+{
+    public override Answer? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var doc = JsonDocument.ParseValue(ref reader);
+        var root = doc.RootElement;
+        if (!root.TryGetProperty("type", out var typeProp))
+            throw new JsonException("Missing 'type' discriminator");
+
+        var typeDiscriminator = typeProp.GetString();
+
+        return typeDiscriminator switch
+        {
+            nameof(BuildMachineAnswer) => root.Deserialize<BuildMachineAnswer>(options),
+            nameof(DestroyMachineAnswer) => root.Deserialize<DestroyMachineAnswer>(options),
+            nameof(SwapMachineAnswer) => root.Deserialize<SwapMachineAnswer>(options),
+            nameof(ErrorAnswer) => root.Deserialize<ErrorAnswer>(options),
+            nameof(StateAnswer) => root.Deserialize<StateAnswer>(options),
+            _ => throw new JsonException($"Unknown type: {typeDiscriminator}")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, Answer value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
     }
 }
